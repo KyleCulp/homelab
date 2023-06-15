@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  bitwarden:
+    image: bitwardenrs/server:latest
+    container_name: bitwarden
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ${VOLUMEDIR}/bitwarden:/data
+    networks:
+      - traefik_proxy
+    environment:
+      - WEBSOCKET_ENABLED=true # Required to use websockets
+      - LOG_FILE=/data/bitwarden.log
+      - SIGNUPS_ALLOWED=true # set to false to disable signups
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_proxy"
+      - "traefik.http.routers.bitwarden.rule=Host(`bw.${DOMAINNAME}`)"
+      - "traefik.http.routers.bitwarden.entrypoints=https"
+      - "traefik.http.routers.bitwarden.tls=true"
+      - "traefik.http.routers.bitwarden.tls.certresolver=cloudflare"
+      - "traefik.http.services.bitwarden.loadbalancer.server.port=80"
